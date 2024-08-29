@@ -2,46 +2,61 @@ const axios = require("axios");
 
 async function obterPersonagem(nomeDoPersonagem) {
   try {
-    let response = await axios.get(
+    const response = await axios.get(
       `https://swapi.dev/api/people?search=${nomeDoPersonagem}`
     );
-    let darthVader = response.data.results[0];
-    let uriDaNave = darthVader.starships[0];
+    const personagem = response.data.results[0];
 
-    console.log("Dados do personagem: ", darthVader);
+    if (!personagem) {
+      console.log(`Personagem "${nomeDoPersonagem}" não encontrado.`);
+      return;
+    }
 
+    console.log("Dados do personagem:", personagem);
     console.log("=======================================");
 
-    buscarNave(uriDaNave);
+    const uriDaNave = personagem.starships[0];
+    if (uriDaNave) {
+      await buscarNave(uriDaNave);
+    } else {
+      console.log(`${nomeDoPersonagem} não possui naves registradas.`);
+    }
   } catch (error) {
-    console.log("Algo deu errado!", error);
+    console.error("Erro ao obter personagem:", error.message);
   }
 }
 
 async function buscarNave(uriDaNave) {
-  let response = await axios.get(uriDaNave);
-  let nave = response.data;
-  const { name, films } = nave;
-  let uriDoFilme = films[0];
+  try {
+    const response = await axios.get(uriDaNave);
+    const { name, films } = response.data;
 
-  console.log("Nave do personagem: ", name);
+    console.log("Nave do personagem:", name);
+    console.log("=======================================");
 
-  console.log("=======================================");
-
-  buscarFilme(uriDoFilme);
+    const uriDoFilme = films[0];
+    if (uriDoFilme) {
+      await buscarFilme(uriDoFilme);
+    } else {
+      console.log("Essa nave não aparece em nenhum filme registrado.");
+    }
+  } catch (error) {
+    console.error("Erro ao buscar nave:", error.message);
+  }
 }
 
 async function buscarFilme(uriDoFilme) {
-  let response = await axios.get(uriDoFilme);
-  let filme = response.data;
-  let { title, opening_crawl } = filme;
+  try {
+    const response = await axios.get(uriDoFilme);
+    const { title, opening_crawl } = response.data;
 
-  console.log("Filme em que a nave aparece: ", title);
-
-  console.log("=======================================");
-  console.log("Texto de abertura: ", opening_crawl);
-
-  console.log("=======================================");
+    console.log("Filme em que a nave aparece:", title);
+    console.log("=======================================");
+    console.log("Texto de abertura:", opening_crawl);
+    console.log("=======================================");
+  } catch (error) {
+    console.error("Erro ao buscar filme:", error.message);
+  }
 }
 
 obterPersonagem("Darth Vader");
